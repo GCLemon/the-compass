@@ -18,14 +18,13 @@ export function generateBoard(rowsize:number, colsize:number, objcount:number) {
         for(let i = 0; i < objcount; ++i) {
             let x = Math.floor(generator.random_incl() * colsize);
             let y = Math.floor(generator.random_incl() * (rowsize - 4));
-            if(2 <= board[y].reduce((p,c,i,a) => p + (c ? 1 : 0), 0)) { --i; continue; }
-            if(2 <= board.reduce((p,c,i,a) => p + (c[x] ? 1 : 0), 0)) { --i; continue; }
+            if(3 <= board[y].reduce((p,c,i,a) => p + (c ? 1 : 0), 0)) { --i; continue; }
+            if(3 <= board.reduce((p,c,i,a) => p + (c[x] ? 1 : 0), 0)) { --i; continue; }
             board[y][x] = true;
         }
 
         // オブジェクトの存在しない行・列があるならやり直し
         if(!board.reduce((p,c,i,a) => c.map((v,i,a) => v || p[i])).reduce((p,c,i,a) => p && c, true)) continue;
-        if(!board.map((v,i,a) => (v.reduce((p,c,i,a) => p || c))).reduce((p,c,i,a) => p && c, true)) continue;
 
         // 余白の追加
         board.unshift(new Array<boolean>(colsize).fill(false));
