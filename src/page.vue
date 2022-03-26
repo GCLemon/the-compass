@@ -33,8 +33,8 @@ import { generateXml } from './gen_file';
 
 export default defineComponent({
     methods: {
-        loadXml() {
-            let board = generateBoard(18, 7, 2, 14, 15);
+        async loadXml() {
+            let board = generateBoard(18, 7, 15);
             let boardXml = generateXml(board);
             
             let blob = new Blob([boardXml], {'type':'text/xml'});

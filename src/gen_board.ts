@@ -1,22 +1,37 @@
-export function generateBoard(rowsize:number, colsize:number, objcount:number, varmin:number, varmax:number) {
+import Generator from 'mersenne-twister';
 
-    // 配列の作成
-    let board = new Array<boolean[]>(rowsize);
+export function generateBoard(rowsize:number, colsize:number, objcount:number) {
+
+    // 乱数生成器
+    let generator = new Generator();
 
     // 無限ループ
     while(true) {
 
         // マップの初期化・作成
-        for(let y = 0; y < rowsize; ++y) {
+        let board = new Array<Array<boolean>>(rowsize - 4);
+        for(let y = 0; y < rowsize - 4; ++y) {
             board[y] = (new Array<boolean>(colsize)).fill(false);
         }
 
         // オブジェクトの配置
-        for(let i = 0; i < colsize * 2; ++i) {
-            let x = Math.floor(Math.random() * 7);
-            let y = Math.floor(Math.random() * (rowsize - 4) + 2);
-            if(board[y][x]) { --i; } else { board[y][x] = true; }
+        for(let i = 0; i < objcount; ++i) {
+            let x = Math.floor(generator.random_incl() * colsize);
+            let y = Math.floor(generator.random_incl() * (rowsize - 4));
+            if(2 <= board[y].reduce((p,c,i,a) => p + (c ? 1 : 0), 0)) { --i; continue; }
+            if(2 <= board.reduce((p,c,i,a) => p + (c[x] ? 1 : 0), 0)) { --i; continue; }
+            board[y][x] = true;
         }
+
+        // オブジェクトの存在しない行・列があるならやり直し
+        if(!board.reduce((p,c,i,a) => c.map((v,i,a) => v || p[i])).reduce((p,c,i,a) => p && c, true)) continue;
+        if(!board.map((v,i,a) => (v.reduce((p,c,i,a) => p || c))).reduce((p,c,i,a) => p && c, true)) continue;
+
+        // 余白の追加
+        board.unshift(new Array<boolean>(colsize).fill(false));
+        board.unshift(new Array<boolean>(colsize).fill(false));
+        board.push(new Array<boolean>(colsize).fill(false));
+        board.push(new Array<boolean>(colsize).fill(false));
 
         // 袋小路の走査・あるなら作成やり直し
         let deadend = false;
@@ -94,19 +109,6 @@ export function generateBoard(rowsize:number, colsize:number, objcount:number, v
 
         // 可動域が二つ以上あるならば作成やり直し
         if(unpassed.length > 0) continue;
-
-        // 平均を9.5として標準偏差を計算
-        let variance = 0.0;
-        for(let x = 0; x < colsize; ++x) {
-            for(let y = 0; y < rowsize; ++y) {
-                if(board[y][x]) variance += Math.pow(9.5 - y, 2);
-            }
-        }
-        variance = Math.sqrt(variance);
-
-        // 標準偏差が指定未満or超過で作成やり直し
-        if(variance < varmin) continue;
-        if(variance > varmax) continue;
 
         // 作成終わり
         return board;
